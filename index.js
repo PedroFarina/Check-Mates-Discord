@@ -95,7 +95,6 @@ discordClient.on("message", msg => {
                     } else {
                         var returnString = "";
                         for(let i = 0; i < res.rows.length; i++) {
-                            console.log(res.rows[i]);
                             returnString += `${i.toString()} - ${res.rows[i]["item"]}\n`;
                         }
                         msg.channel.send(returnString.slice(0, -1));
