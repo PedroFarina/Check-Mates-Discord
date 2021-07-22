@@ -1,4 +1,9 @@
-require('dotenv/config')
+require('dotenv/config');
+const express = require('express');
+const PORT = process.env.PORT || 5000;
+
+express().listen(PORT, () => console.log(`Listening on ${ PORT }`));
+
 const { Client } = require('pg');
 const databaseClient = new Client({
     connectionString: process.env.DATABASE_URL,
