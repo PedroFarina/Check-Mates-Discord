@@ -51,6 +51,10 @@ module.exports = class RollingSession {
 
     roll() {
         if (this.players.length == 1 || this.items.length == 0) return false;
+        var itemsString = "You're rolling for:\n";
+        this.items.forEach(item => itemsString += `${item}\n`);
+        itemsString = itemsString.slice(0, -1);
+        this.channel.send(itemsString);
         listAllItemsFrom(this.guildID, this.players, (err, res) => {
             if(err) {
                 this.channel.send(err.message);

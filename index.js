@@ -31,7 +31,7 @@ discordClient.on("message", msg => {
                 if (err) {
                     msg.reply(err.message);
                 } else {
-                    msg.reply(`you just added ${args.join(" ")} to your wishlist! In your next roll you'll receive a bonus if it's on the list.`);
+                    msg.reply(`you just added ${args.join(" ")} to your wishlist! If you participate in a rolling session with that item everyone will know about it.`);
                 }
             });
             break;
@@ -41,6 +41,10 @@ discordClient.on("message", msg => {
                     if(err) {
                         msg.reply(err.message);
                     } else {
+                        if (resizeTo.rows.length == 0) {
+                            msg.channel.send(`No one from ${msg.guild.name} has made a wishlist yet. Begin yours by using !add right now :D`)
+                            return;
+                        }
                         var returnString = `${msg.guild.name}'s Wishlist:\n`;
                         for(let i = 0; i < res.rows.length; i++) {
                             returnString += `<@${res.rows[i]["id_discord"]}> - ${res.rows[i]["item"]}\n`;
@@ -53,6 +57,10 @@ discordClient.on("message", msg => {
                     if (err) {
                         msg.reply(err.message);
                     } else {
+                        if (res.rows.length == 0) {
+                            msg.reply("you don't have any items on the wishlist yet. Use !add to start your wishlist.");
+                            return;
+                        }
                         var returnString = "";
                         for(let i = 0; i < res.rows.length; i++) {
                             returnString += `${i.toString()} - ${res.rows[i]["item"]}\n`;
@@ -73,78 +81,87 @@ discordClient.on("message", msg => {
             break;
         case "roll":
             let arg = args.shift()
-            var found = false;
-            if (arg == "start") {
-                for(let i = 0; i < rolls.length; i++) {
-                    if(rolls[i].guildID == msg.guild.id) {
-                        found = true;
-                        break;
+            var index = -1;
+            for(let i = 0; i < rolls.length; i++) {
+                if(rolls[i].guildID == msg.guild.id) {
+                    index = i;
+                    break;
+                }
+            }
+            switch(arg) {
+                case "begin":
+                case "init":
+                    if(index == -1) {
+                        rolls.push(new RollingSession(msg.guild.id, msg.channel));
+                        msg.channel.send("Starting a rolling session :)");
+                    } else {
+                        msg.channel.send("There's already a rolling session going on your server. Use !roll cancel to stop it.");
                     }
-                }
-                if(found) {
-                    msg.channel.send("There's already a rolling session going on your server.");
-                } else {
-                    rolls.push(new RollingSession(msg.guild.id, msg.channel));
-                    msg.channel.send("Starting a rolling session :)");
-                }
-            } else if (arg == "erase") {
-                for(let i = 0; i < rolls.length; i++) {
-                    if(rolls[i].guildID == msg.guild.id) {
-                        found = true;
+                    break;
+                case "erase":
+                case "cancel":
+                    if(index == -1) {
+                        msg.channel.send("You can't cancel what doesn't exist lol. Try using !roll init to start a rolling session.");
+                    } else {
                         rolls.splice(i, 1);
-                        break;
+                        msg.channel.send("The rolling session has been canceled.");
                     }
-                }
-                if(found) {
-                    msg.channel.send("Your rolling session has been erased.");
-                } else {
-                    msg.channel.send("There's no rolling session going on yet.");
-                }
-            } else if (arg == "join") {
-                for(let i = 0; i < rolls.length; i++) {
-                    if(rolls[i].guildID == msg.guild.id) {
-                        found = true;
-                        rolls[i].addPlayer(msg.author.id);
-                        break;
+                    break;
+                case "enter":
+                case "join":
+                    if(index == -1) {
+                        msg.reply("there's no rolling session going on. Use !roll init to start one.");
+                    } else {
+                        rolls[index].addPlayer(msg.author.id);
+                        msg.reply("you joined the rolling session.");
                     }
-                }
-                if(found) {
-                    msg.reply("you were added to the rolling session.");
-                } else {
-                    msg.reply("there's no rolling session going on.");
-                }
-            } else if (arg == "add") {
-                for(let i = 0; i < rolls.length; i++) {
-                    if(rolls[i].guildID == msg.guild.id) {
-                        found = true;
+                    break;
+                case "leave":
+                case "withdraw":
+                    if(index == -1) {
+                        msg.reply("there's no rolling session going on. Use !roll init to start one.");
+                    } else {
+                        rolls[index].removePlayer(msg.author.id);
+                        msg.reply("you left the rolling session.");
+                    }
+                    break;
+                case "add":
+                case "insert":
+                    if(index == -1) {
+                        msg.reply("there's no rolling session going on. Use !roll init to start one.");
+                    } else {
                         var items = args.join(" ").split(",");
-                        items.forEach(item => rolls[i].addItem(item));
-                        break;
+                        items.forEach(item => rolls[index].addItem(item));
+                        message.channel.send("Item(s) added to your rolling session!");
                     }
-                }
-                if (found) {
-                    msg.channel.send("Nice!");
-                } else {
-                    msg.reply("there's no rolling session going on.");
-                }
-            } else if (arg == "go") {
-                for(let i = 0; i < rolls.length; i++) {
-                    if(rolls[i].guildID == msg.guild.id) {
-                        found = true;
-                        if (rolls[i].roll()) {
-                            msg.channel.send("Nice rolls, cya later :D");
+                    break;
+                case "remove":
+                case "delete":
+                    if(index == -1) {
+                        msg.reply("there's no rolling session going on. Use !roll init to start one.");
+                    } else {
+                        var items = args.join(" ").split(",");
+                        items.forEach(item => rolls[index].removeItem(item));
+                        msg.reply("Item(s) removed from your rolling session!");
+                    }
+                    break;
+                case "go":
+                case "roll":
+                case "confirm":
+                    if(index == -1) {
+                        msg.reply("there's no rolling session going on. Use !roll init to start one.");
+                    } else {
+                        if (rolls[index].roll()) {
+                            msg.channel.send("Let the games begin!");
                             rolls.splice(i, 1);
                         } else {
                             msg.channel.send("Oops, you can't start a rolling session like that. Check if you have more than one player rolling and any item on the list.");
                         }
-                        break;
                     }
-                }
-                if (!found) {
-                    msg.reply("there's no rolling session going on.");
-                }
-            } else {
-                msg.reply("I have no such command.");
+                    break;
+                default:
+                    msg.channel.send("I don't know how to respond to that");
+                    break;
             }
             break;
     }
