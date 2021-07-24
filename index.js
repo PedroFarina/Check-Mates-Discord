@@ -41,7 +41,7 @@ discordClient.on("message", msg => {
                     if(err) {
                         msg.reply(err.message);
                     } else {
-                        if (resizeTo.rows.length == 0) {
+                        if (res.rows.length == 0) {
                             msg.channel.send(`No one from ${msg.guild.name} has made a wishlist yet. Begin yours by using !add right now :D`)
                             return;
                         }
