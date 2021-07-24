@@ -6,12 +6,14 @@ express().listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
 const { insertItem, removeItem, listItem } = require('./model/queries');
 const Discord = require("discord.js");
+const RollingSession = require('./model/rolling');
 const discordClient = new Discord.Client();
 
 discordClient.on("ready", () => {
     console.log("Logged in...");
 });
 
+var rolls = [];
 const prefix = "!";
 discordClient.on("message", msg => {
     if (msg.author.bot) return;
@@ -61,13 +63,89 @@ discordClient.on("message", msg => {
             }
             break;
         case "remove":
-            removeItem(msg.guild.id, args.join(" "), msg.member.id, (err, res) => {
+            removeItem(msg.guild.id, msg.member.id, args.join(" ").trim(), (err, res) => {
                 if(err) {
                     msg.reply(err.message);
                 } else {
                     msg.reply(`you successfully removed ${args.join(" ")} from your wishlist.`);
                 }
             });
+            break;
+        case "roll":
+            let arg = args.shift()
+            var found = false;
+            if (arg == "start") {
+                for(let i = 0; i < rolls.length; i++) {
+                    if(rolls[i].guildID == msg.guild.id) {
+                        found = true;
+                        break;
+                    }
+                }
+                if(found) {
+                    msg.channel.send("There's already a rolling session going on your server.");
+                } else {
+                    rolls.push(new RollingSession(msg.guild.id, msg.channel));
+                    msg.channel.send("Starting a rolling session :)");
+                }
+            } else if (arg == "erase") {
+                for(let i = 0; i < rolls.length; i++) {
+                    if(rolls[i].guildID == msg.guild.id) {
+                        found = true;
+                        rolls.splice(i, 1);
+                        break;
+                    }
+                }
+                if(found) {
+                    msg.channel.send("Your rolling session has been erased.");
+                } else {
+                    msg.channel.send("There's no rolling session going on yet.");
+                }
+            } else if (arg == "join") {
+                for(let i = 0; i < rolls.length; i++) {
+                    if(rolls[i].guildID == msg.guild.id) {
+                        found = true;
+                        rolls[i].addPlayer(msg.author.id);
+                        break;
+                    }
+                }
+                if(found) {
+                    msg.reply("you were added to the rolling session.");
+                } else {
+                    msg.reply("there's no rolling session going on.");
+                }
+            } else if (arg == "add") {
+                for(let i = 0; i < rolls.length; i++) {
+                    if(rolls[i].guildID == msg.guild.id) {
+                        found = true;
+                        var items = args.join(" ").split(",");
+                        items.forEach(item => rolls[i].addItem(item));
+                        break;
+                    }
+                }
+                if (found) {
+                    msg.channel.send("Nice!");
+                } else {
+                    msg.reply("there's no rolling session going on.");
+                }
+            } else if (arg == "go") {
+                for(let i = 0; i < rolls.length; i++) {
+                    if(rolls[i].guildID == msg.guild.id) {
+                        found = true;
+                        if (rolls[i].roll()) {
+                            msg.channel.send("Nice rolls, cya later :D");
+                            rolls.splice(i, 1);
+                        } else {
+                            msg.channel.send("Oops, you can't start a rolling session like that. Check if you have more than one player rolling and any item on the list.");
+                        }
+                        break;
+                    }
+                }
+                if (!found) {
+                    msg.reply("there's no rolling session going on.");
+                }
+            } else {
+                msg.reply("I have no such command.");
+            }
             break;
     }
 });
