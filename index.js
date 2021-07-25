@@ -116,6 +116,14 @@ discordClient.on("message", msg => {
                         msg.reply("you joined the rolling session.");
                     }
                     break;
+                case "joint":
+                    if(index == -1) {
+                        msg.reply("there's no rolling session going on. Use !roll init to start one.");
+                    } else {
+                        rolls[index].addPlayer(msg.author.id);
+                        msg.reply("you joinet the rolling session. ;)");
+                    }
+                    break;
                 case "leave":
                 case "withdraw":
                     if(index == -1) {
