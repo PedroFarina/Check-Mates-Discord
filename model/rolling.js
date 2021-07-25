@@ -32,8 +32,8 @@ module.exports = class RollingSession {
     }
     removeItem(item) {
         let pos = this.items.indexOf(item);
-        if (pos) {
-            items.splice(pos, 1);
+        if (pos != -1) {
+            this.items.splice(pos, 1);
         }
     }
 
@@ -44,14 +44,15 @@ module.exports = class RollingSession {
 
     removePlayer(player) {
         let pos = this.players.indexOf(player);
-        if (pos) {
-            player.splice(pos, 1);
+        if (pos != -1) {
+            this.players.splice(pos, 1);
         }
     }
 
     roll() {
         if (this.players.length == 1 || this.items.length == 0) return false;
         var itemsString = "You're rolling for:\n";
+        this.items.sort()
         this.items.forEach(item => itemsString += `${item}\n`);
         itemsString = itemsString.slice(0, -1);
         this.channel.send(itemsString);

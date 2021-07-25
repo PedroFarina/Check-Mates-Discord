@@ -121,7 +121,7 @@ discordClient.on("message", msg => {
                         msg.reply("there's no rolling session going on. Use !roll init to start one.");
                     } else {
                         rolls[index].addPlayer(msg.author.id);
-                        msg.reply("you joinet the rolling session. ;)");
+                        msg.reply("you joint the rolling session. ;)");
                     }
                     break;
                 case "leave":
