@@ -103,7 +103,7 @@ discordClient.on("message", msg => {
                     if(index == -1) {
                         msg.channel.send("You can't cancel what doesn't exist lol. Try using !roll init to start a rolling session.");
                     } else {
-                        rolls.splice(i, 1);
+                        rolls.splice(index, 1);
                         msg.channel.send("The rolling session has been canceled.");
                     }
                     break;
@@ -153,7 +153,7 @@ discordClient.on("message", msg => {
                     } else {
                         if (rolls[index].roll()) {
                             msg.channel.send("Let the games begin!");
-                            rolls.splice(i, 1);
+                            rolls.splice(index, 1);
                         } else {
                             msg.channel.send("Oops, you can't start a rolling session like that. Check if you have more than one player rolling and any item on the list.");
                         }
