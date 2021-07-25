@@ -55,12 +55,13 @@ module.exports = class RollingSession {
         this.items.forEach(item => itemsString += `${item}\n`);
         itemsString = itemsString.slice(0, -1);
         this.channel.send(itemsString);
+        var lowerCasedItems = this.items.map((x) => x.toLowerCase());
         listAllItemsFrom(this.guildID, this.players, (err, res) => {
             if(err) {
                 this.channel.send(err.message);
             } else {
                 for(let i = 0; i < res.rows.length; i++) {
-                    if (this.items.includes(res.rows[i]["item"])) {
+                    if (lowerCasedItems.includes(res.rows[i]["item"].toLowerCase())) {
                         this.channel.send(`<@${res.rows[i]["id_discord"]}> has ${res.rows[i]["item"]} on the wishlist.`);
                     }
                 }

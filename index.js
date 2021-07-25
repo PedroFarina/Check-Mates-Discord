@@ -132,7 +132,7 @@ discordClient.on("message", msg => {
                     } else {
                         var items = args.join(" ").split(",");
                         items.forEach(item => rolls[index].addItem(item));
-                        message.channel.send("Item(s) added to your rolling session!");
+                        msg.channel.send("Item(s) added to your rolling session!");
                     }
                     break;
                 case "remove":
