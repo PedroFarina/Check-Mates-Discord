@@ -168,7 +168,7 @@ discordClient.on("message", msg => {
                     } else if ((msg.author.id == rolls[index].choosingPlayer) || (args[0] == "force" && msg.member.hasPermission("ADMINISTRATOR"))) {
                         if (args[0] == "force") args.shift();
                         const itemIndex = parseInt(args[0]);
-                        if (itemIndex) {
+                        if (itemIndex >= 0) {
                             const shouldEnd = rolls[index].pickItem(itemIndex);
                             if(shouldEnd == true) {
                                 rolls.splice(index, 1);
