@@ -153,15 +153,52 @@ discordClient.on("message", msg => {
                         msg.reply("Item(s) removed from your rolling session!");
                     }
                     break;
+                case "pick":
+                case "choose":
+                    if(index == -1) {
+                        msg.reply("there's no rolling session going on. Use !roll init to start one.");
+                    } else if ((msg.author.id == rolls[index].choosingPlayer) || (args[0] == "force" && msg.member.hasPermission("ADMINISTRATOR"))) {
+                        if (args[0] == "force") args.shift();
+                        const itemIndex = parseInt(args[0]);
+                        if (itemIndex) {
+                            const shouldEnd = rolls[index].pickItem(itemIndex);
+                            if(shouldEnd == true) {
+                                rolls.splice(index, 1);
+                            } else if (shouldEnd == null) {
+                                msg.reply("please user a proper input");
+                            }
+                        } else {
+                            msg.reply("choose a proper number please.");
+                        }
+                    } else {
+                        msg.reply("there's no specific order of roll yet.");
+                    }
+                    break;
+                case "skip":
+                    if (index == -1) {
+                        msg.reply("there's no rolling session going on. Use !roll init to start one.");
+                    } else if ((msg.author.id == rolls[index].choosingPlayer) || (args[0] == "force" && msg.member.hasPermission("ADMINISTRATOR"))) {
+                        const shouldEnd = rolls[index].skipAndRemove();
+                        if (shouldEnd == true) {
+                            rolls.splice(index, 1);
+                        } else if (shouldEnd == null) {
+                            msg.reply("something wrong is not right. You're the choosing player, but you're not on the players list.")
+                        }
+                    } else {
+                        if (rolls[index].choosingPlayer) {
+                            msg.channel.send(`Yo <@${rolls[index].choosingPlayer}> hurry up, people are trying to steal your turn.`);
+                        } else {
+                            msg.reply("there's no specific order of roll yet.");
+                        }
+                    }
+                    break;
                 case "go":
                 case "roll":
-                case "confirm":
                     if(index == -1) {
                         msg.reply("there's no rolling session going on. Use !roll init to start one.");
                     } else {
-                        if (rolls[index].roll()) {
+                        if (rolls[index].startRoll()) {
                             msg.channel.send("Let the games begin!");
-                            rolls.splice(index, 1);
                         } else {
                             msg.channel.send("Oops, you can't start a rolling session like that. Check if you have more than one player rolling and any item on the list.");
                         }

@@ -24,6 +24,9 @@ module.exports = class RollingSession {
         this.guildID = guildID;
         this.items = [];
         this.players = [];
+        this.chosenItems = [];
+        this.nextPlayers = [];
+        this.choosingPlayer = null;
     }
 
     addItem(item) {
@@ -49,33 +52,88 @@ module.exports = class RollingSession {
         }
     }
 
-    roll() {
+    startRoll() {
         if (this.players.length == 1 || this.items.length == 0) return false;
-        var itemsString = "You're rolling for:\n";
-        this.items.sort()
-        this.items.forEach(item => itemsString += `${item}\n`);
-        itemsString = itemsString.slice(0, -1);
-        this.channel.send(itemsString);
+        this.channel.send(this.printItemsString());
         var lowerCasedItems = this.items.map((x) => x.toLowerCase());
         listAllItemsFrom(this.guildID, this.players, (err, res) => {
             if(err) {
                 this.channel.send(err.message);
             } else {
+                var wishlistString = "";
                 for(let i = 0; i < res.rows.length; i++) {
                     if (lowerCasedItems.includes(res.rows[i]["item"].toLowerCase())) {
-                        this.channel.send(`<@${res.rows[i]["id_discord"]}> has ${res.rows[i]["item"]} on the wishlist.`);
+                        wishlistString += `<@${res.rows[i]["id_discord"]}> has ${res.rows[i]["item"]} on the wishlist.\n`;
                     }
                 }
-                var playersCopy = this.players.map((x) => x);
-                for(let i=0; i < this.items.length; i++) {
-                    shuffle(playersCopy);
-                    this.channel.send(`<@${playersCopy.shift()}> picks an item.`);
-                    if(playersCopy.length == 0) {
-                        playersCopy = this.players.map((x) => x);
-                    }
-                }
+                wishlistString = wishlistString.slice(0, -1);
+                this.channel.send(wishlistString);
+                this.nextPlayer();
             }
         });
         return true;
+    }
+
+    printItemsString() {
+        var itemsString = "You're rolling for:\n";
+        this.items.sort()
+        for(let i=0; i < this.items.length; i++) {
+            itemsString += `${i} - ${this.items[i]}\n`;
+        }
+        itemsString = itemsString.slice(0, -1);
+        return itemsString;
+    }
+
+    setOrder() {
+        if(this.nextPlayers.length == 0) {
+            this.nextPlayers = this.players.map((x) => x);
+        }
+        shuffle(this.nextPlayers);
+    }
+
+    nextPlayer() {
+        this.setOrder();
+        this.choosingPlayer = this.nextPlayers.shift();
+        this.channel.send(`${this.printItemsString()}\n<@${this.choosingPlayer}> it's your turn to pick an item.`);
+    }
+
+    pickItem(itemIndex) {
+        if (itemIndex >= this.items.length || itemIndex < 0) return null;
+        var choseString = `<@${this.choosingPlayer}> chose ${this.items[itemIndex]}.`;
+        this.items.splice(itemIndex, 1);
+        this.chosenItems.push(choseString);
+        this.channel.send(choseString)
+        if(this.items.length == 0) {
+            this.printChosenItems();
+            return true;
+        } else {
+            this.nextPlayer();
+            return false;
+        }
+    }
+
+    skipAndRemove() {
+        const index = this.players.indexOf(this.choosingPlayer);
+        if (index != -1) {
+            this.players.splice(index, 1);
+        } else {
+            return null;
+        }
+        if (this.players.length == 0) {
+            this.printChosenItems();
+            return true;
+        } else {
+            this.nextPlayer();
+            return false;
+        }
+    }
+
+    printChosenItems() {
+        var allChosenItems = "";
+            this.chosenItems.sort();
+            for (let i = 0; i < this.chosenItems.length; i++) {
+                allChosenItems += this.chosenItems[i] + "\n";
+            }
+            this.channel.send(allChosenItems.slice(0, -1));
     }
 }
