@@ -21,8 +21,8 @@ discordClient.on("message", msg => {
     const commandBody = msg.cleanContent.slice(prefix.length);
     const args = commandBody.split(" ");
     const command = args.shift().toLowerCase();
-    if(commandBody.includes(";") || commandBody.includes(")") || commandBody.includes("=")) {
-        msg.reply("could you please not SQL inject me bro?");
+    if(commandBody.includes(";") || commandBody.includes("(") || commandBody.includes(")") || commandBody.includes("=")) {
+        msg.reply("could you please not SQL inject me bro? Remove any ';', '=', '(' or ')' characters and try again.");
         return;
     }
     switch(command) {
