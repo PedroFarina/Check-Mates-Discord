@@ -129,8 +129,12 @@ discordClient.on("message", msg => {
                     if(index == -1) {
                         msg.reply("there's no rolling session going on. Use !roll init to start one.");
                     } else {
-                        rolls[index].removePlayer(msg.author.id);
-                        msg.reply("you left the rolling session.");
+                        if (rolls[index].choosingPlayer == null) {
+                            rolls[index].removePlayer(msg.author.id);
+                            msg.reply("you left the rolling session.");
+                        } else {
+                            msg.reply("the rolling has already started. Wait for you turn and send !roll skip to leave.");
+                        }
                     }
                     break;
                 case "add":
@@ -148,9 +152,13 @@ discordClient.on("message", msg => {
                     if(index == -1) {
                         msg.reply("there's no rolling session going on. Use !roll init to start one.");
                     } else {
-                        var items = args.join(" ").split(",");
-                        items.forEach(item => rolls[index].removeItem(item));
-                        msg.reply("Item(s) removed from your rolling session!");
+                        if (rolls[index].choosingPlayer == null) {
+                            var items = args.join(" ").split(",");
+                            items.forEach(item => rolls[index].removeItem(item));
+                            msg.reply("Item(s) removed from your rolling session!");
+                        } else {
+                            msg.reply("the rolling has already started. You can still add items though.");
+                        }
                     }
                     break;
                 case "pick":
@@ -198,7 +206,7 @@ discordClient.on("message", msg => {
                         msg.reply("there's no rolling session going on. Use !roll init to start one.");
                     } else {
                         if (rolls[index].startRoll()) {
-                            msg.channel.send("Let the games begin!");
+                            msg.channel.send("Let the games begin!\nHit !roll choose {number} to choose an item if it's your turn, and !roll skip if you're done rolling.\nThe admin can also hit !roll skip force or !roll choose force {number}.");
                         } else {
                             msg.channel.send("Oops, you can't start a rolling session like that. Check if you have more than one player rolling and any item on the list.");
                         }

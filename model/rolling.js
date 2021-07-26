@@ -54,12 +54,11 @@ module.exports = class RollingSession {
 
     startRoll() {
         if (this.players.length == 1 || this.items.length == 0) return false;
-        this.channel.send(this.printItemsString());
-        var lowerCasedItems = this.items.map((x) => x.toLowerCase());
         listAllItemsFrom(this.guildID, this.players, (err, res) => {
             if(err) {
                 this.channel.send(err.message);
             } else {
+                var lowerCasedItems = this.items.map((x) => x.toLowerCase());
                 var wishlistString = "";
                 for(let i = 0; i < res.rows.length; i++) {
                     if (lowerCasedItems.includes(res.rows[i]["item"].toLowerCase())) {
@@ -98,7 +97,7 @@ module.exports = class RollingSession {
     }
 
     pickItem(itemIndex) {
-        if (itemIndex >= this.items.length || itemIndex < 0) return null;
+        if (this.items[itemIndex] == null) return null;
         var choseString = `<@${this.choosingPlayer}> chose ${this.items[itemIndex]}.`;
         this.items.splice(itemIndex, 1);
         this.chosenItems.push(choseString);
