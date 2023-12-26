@@ -52,6 +52,7 @@ module.exports = class RollingSession {
 
     startRoll() {
         if (this.players.length == 1 || this.items.length == 0) return false;
+		this.nextPlayer();
         return true;
     }
 
