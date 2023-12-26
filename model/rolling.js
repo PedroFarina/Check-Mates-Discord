@@ -1,5 +1,3 @@
-const { listAllItemsFrom } = require("./queries");
-
 function shuffle(array) {
     var currentIndex = array.length,  randomIndex;
   
@@ -54,22 +52,6 @@ module.exports = class RollingSession {
 
     startRoll() {
         if (this.players.length == 1 || this.items.length == 0) return false;
-        listAllItemsFrom(this.guildID, this.players, (err, res) => {
-            if(err) {
-                this.channel.send(err.message);
-            } else {
-                var lowerCasedItems = this.items.map((x) => x.toLowerCase());
-                var wishlistString = "";
-                for(let i = 0; i < res.rows.length; i++) {
-                    if (lowerCasedItems.includes(res.rows[i]["item"].toLowerCase())) {
-                        wishlistString += `<@${res.rows[i]["id_discord"]}> has ${res.rows[i]["item"]} on the wishlist.\n`;
-                    }
-                }
-                wishlistString = wishlistString.slice(0, -1);
-                this.channel.send(wishlistString);
-                this.nextPlayer();
-            }
-        });
         return true;
     }
 

@@ -4,7 +4,6 @@ const PORT = process.env.PORT || 5000;
 
 express().listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
-const { insertItem, removeItem, listItem } = require('./model/queries');
 const Discord = require("discord.js");
 const RollingSession = require('./model/rolling');
 const discordClient = new Discord.Client();
@@ -22,63 +21,10 @@ discordClient.on("message", msg => {
     const args = commandBody.split(" ");
     const command = args.shift().toLowerCase();
     if(commandBody.includes(";") || commandBody.includes("(") || commandBody.includes(")") || commandBody.includes("=")) {
-        msg.reply("could you please not SQL inject me bro? Remove any ';', '=', '(' or ')' characters and try again.");
+        msg.reply("could you please not SQL inject me? Remove any ';', '=', '(' or ')' characters and try again.");
         return;
     }
     switch(command) {
-        case "add":
-            insertItem(msg.guild.id, msg.member.id, args.join(" "), (err, res) => {
-                if (err) {
-                    msg.reply(err.message);
-                } else {
-                    msg.reply(`you just added ${args.join(" ")} to your wishlist! If you participate in a rolling session with that item everyone will know about it.`);
-                }
-            });
-            break;
-        case "wishlist":
-            if (args.shift() == "all") {
-                listItem(msg.guild.id, null, (err, res) => {
-                    if(err) {
-                        msg.reply(err.message);
-                    } else {
-                        if (res.rows.length == 0) {
-                            msg.channel.send(`No one from ${msg.guild.name} has made a wishlist yet. Begin yours by using !add right now :D`)
-                            return;
-                        }
-                        var returnString = `${msg.guild.name}'s Wishlist:\n`;
-                        for(let i = 0; i < res.rows.length; i++) {
-                            returnString += `<@${res.rows[i]["id_discord"]}> - ${res.rows[i]["item"]}\n`;
-                        }
-                        msg.channel.send(returnString.slice(0, -2));
-                    }
-                });
-            } else {
-                listItem(msg.guild.id, msg.member.id, (err, res) => {
-                    if (err) {
-                        msg.reply(err.message);
-                    } else {
-                        if (res.rows.length == 0) {
-                            msg.reply("you don't have any items on the wishlist yet. Use !add to start your wishlist.");
-                            return;
-                        }
-                        var returnString = "";
-                        for(let i = 0; i < res.rows.length; i++) {
-                            returnString += `${i.toString()} - ${res.rows[i]["item"]}\n`;
-                        }
-                        msg.channel.send(returnString.slice(0, -1));
-                    }
-                });
-            }
-            break;
-        case "remove":
-            removeItem(msg.guild.id, msg.member.id, args.join(" ").trim(), (err, res) => {
-                if(err) {
-                    msg.reply(err.message);
-                } else {
-                    msg.reply(`you successfully removed ${args.join(" ")} from your wishlist.`);
-                }
-            });
-            break;
         case "roll":
             let arg = args.shift()
             var index = -1;
